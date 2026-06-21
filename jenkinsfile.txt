@@ -1,24 +1,70 @@
 pipeline {
     agent any
 
+    environment {
+        TARGET_SERVER = "13.60.44.33"
+    }
+
     stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'dev',
+                url: 'https://github.com/sherbi15/nodejs-demo-app'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
 
         stage('Build') {
             steps {
-                echo 'Build Successful'
+                echo "Building Application"
+
+                sh '''
+                mkdir -p build
+                cp app.js build/
+                cp package.json build/
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Test Successful'
+                sh 'npm test'
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'build/**'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploy Successful'
+                sh '''
+                scp -r build/* ec2-user@$TARGET_SERVER:/home/ec2-user/app/
+                '''
             }
         }
+
+        stage('Restart Application') {
+            steps {
+                sh '''
+                ssh ec2-user@$TARGET_SERVER "
+                    cd /home/ec2-user/app
+                    npm install
+                    pkill node || true
+                    nohup node app.js > app.log 2>&1 &
+                "
+                '''
+            }
+        }
+
     }
 }
+
