@@ -56,7 +56,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                scp -r -i "/var/lib/jenkins/.ssh/id_rsa" build/* ec2-user@$TARGET_SERVER:/home/ec2-user/app/
+                scp -o StrictHostKeyChecking=no -r build/* ec2-user@$TARGET_SERVER:/home/ec2-user/app/
                 '''
             }
         }
