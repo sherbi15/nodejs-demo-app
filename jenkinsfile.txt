@@ -43,6 +43,15 @@ pipeline {
                 archiveArtifacts artifacts: 'build/**'
             }
         }
+        stage('Debug') {
+    steps {
+        sh '''
+        whoami
+        pwd
+        ls -la ~/.ssh
+        '''
+    }
+}
 
         stage('Deploy') {
             steps {
